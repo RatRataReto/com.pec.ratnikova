@@ -4,8 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -14,11 +19,11 @@ import com.pec.ratnikova.data.SessionManager
 import com.pec.ratnikova.data.StudentRepository
 import com.pec.ratnikova.ui.screens.LoginScreen
 import com.pec.ratnikova.ui.screens.ProfileScreen
+import com.pec.ratnikova.ui.screens.LoadingScreen
+import com.pec.ratnikova.ui.theme.BackgroundDark
 import com.pec.ratnikova.ui.theme.StudentQRTheme
 import com.pec.ratnikova.ui.viewmodel.StudentViewModel
 import com.pec.ratnikova.ui.viewmodel.UiState
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.sp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,17 +64,26 @@ fun MainApp(sessionManager: SessionManager, viewModel: StudentViewModel) {
             })
         }
         composable("profile") {
-            (uiState as? UiState.Success)?.student?.let { student ->
-                ProfileScreen(
-                    student = student,
-                    onBack = {
-                        viewModel.reset()
-                        navController.navigate("login")
-                    },
-                    onAvatarUpdated = { avatarUrl ->
-                        viewModel.updateAvatar(student.id, avatarUrl)
-                    }
-                )
+            when (uiState) {
+                is UiState.Success -> {
+                    val student = (uiState as UiState.Success).student
+                    ProfileScreen(
+                        student = student,
+                        onBack = {
+                            viewModel.reset()
+                            navController.navigate("login")
+                        },
+                        onAvatarUpdated = { avatarUrl ->
+                            viewModel.updateAvatar(student.id, avatarUrl)
+                        }
+                    )
+                }
+                is UiState.Loading -> {
+                    LoadingScreen()
+                }
+                else -> {
+                    Box(modifier = Modifier.fillMaxSize().background(BackgroundDark))
+                }
             }
         }
     }
