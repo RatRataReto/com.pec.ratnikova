@@ -3,7 +3,6 @@ package com.pec.ratnikova.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
@@ -17,12 +16,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pec.ratnikova.ui.theme.BackgroundDark
-import com.pec.ratnikova.ui.theme.InputBackground
+import com.pec.ratnikova.ui.components.ArcHeader
+import com.pec.ratnikova.ui.components.HeaderCardInfo
+import com.pec.ratnikova.ui.theme.LoginBackground
+import com.pec.ratnikova.ui.theme.LoginHeader
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (String) -> Unit
+    onLoginSuccess: (String, Boolean) -> Unit // Added isRemembered parameter
 ) {
     var code by remember { mutableStateOf("") }
     var isRemembered by remember { mutableStateOf(false) }
@@ -30,22 +31,19 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundDark)
-            .padding(16.dp)
+            .background(LoginBackground)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(40.dp))
-            
-            Text(
-                text = "ВХОД В АККАУНТ",
-                color = Color.White,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 40.dp)
+            // Arc Header with user-provided darker color
+            ArcHeader(
+                title = "Вход в аккаунт", 
+                backgroundColor = LoginHeader
             )
+
+            Spacer(modifier = Modifier.height(30.dp))
 
             // Logo
             Box(
@@ -55,75 +53,79 @@ fun LoginScreen(
                     .background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        painter = painterResource(id = com.pec.ratnikova.R.drawable.ic_logo_pec),
-                        contentDescription = null,
-                        modifier = Modifier.size(100.dp),
-                        tint = Color.Unspecified
-                    )
-                }
+                Icon(
+                    painter = painterResource(id = com.pec.ratnikova.R.drawable.ic_logo_pec),
+                    contentDescription = null,
+                    modifier = Modifier.size(100.dp),
+                    tint = Color.Unspecified
+                )
             }
 
-            Spacer(modifier = Modifier.height(100.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
-            // Input Field Container
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(InputBackground)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            // Input Card
+            HeaderCardInfo(
+                label = "Введите ваш код",
+                headerColor = LoginHeader,
+                modifier = Modifier.padding(horizontal = 24.dp)
             ) {
-                Column {
-                    Text(
-                        text = "Введите ваш код",
-                        color = Color.Gray,
-                        fontSize = 12.sp
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextField(
+                        value = code,
+                        onValueChange = { code = it },
+                        modifier = Modifier.weight(1f),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
+                        ),
+                        placeholder = { Text("123123") },
+                        singleLine = true
                     )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextField(
-                            value = code,
-                            onValueChange = { code = it },
-                            modifier = Modifier.weight(1f),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                                focusedTextColor = Color.Black,
-                                unfocusedTextColor = Color.Black
-                            ),
-                            placeholder = { Text("123123") },
-                            singleLine = true
+                    IconButton(onClick = { if (code.isNotEmpty()) onLoginSuccess(code, isRemembered) }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = "Login",
+                            tint = Color.Black
                         )
-                        IconButton(onClick = { if (code.isNotEmpty()) onLoginSuccess(code) }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = "Login",
-                                tint = Color.Black
-                            )
-                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Switch
+            // Redesigned Switch with Label (Quick Login)
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Text(
+                    text = "БЫСТРЫЙ ВХОД",
+                    color = Color.White,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+                
+                Spacer(modifier = Modifier.width(12.dp))
+
                 Switch(
                     checked = isRemembered,
                     onCheckedChange = { isRemembered = it },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color.White,
-                        checkedTrackColor = Color(0xFF4A90E2)
+                        checkedTrackColor = Color(0xFF4A90E2),
+                        uncheckedThumbColor = Color.White,
+                        uncheckedTrackColor = Color(0xFF6B728E)
                     )
                 )
             }

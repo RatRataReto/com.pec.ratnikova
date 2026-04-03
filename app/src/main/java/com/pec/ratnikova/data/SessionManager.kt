@@ -6,23 +6,19 @@ import android.content.SharedPreferences
 class SessionManager(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("student_session", Context.MODE_PRIVATE)
 
+    companion object {
+        private const val KEY_STUDENT_CODE = "student_code"
+    }
+
     fun saveStudentCode(code: String) {
-        prefs.edit().putString("student_code", code).apply()
+        prefs.edit().putString(KEY_STUDENT_CODE, code).apply()
     }
 
     fun getStudentCode(): String? {
-        return prefs.getString("student_code", null)
+        return prefs.getString(KEY_STUDENT_CODE, null)
     }
 
-    fun logout() {
-        prefs.edit().clear().apply()
-    }
-
-    fun isAutoLoginEnabled(): Boolean {
-        return prefs.getBoolean("auto_login", false)
-    }
-
-    fun setAutoLogin(enabled: Boolean) {
-        prefs.edit().putBoolean("auto_login", enabled).apply()
+    fun clearStudentCode() {
+        prefs.edit().remove(KEY_STUDENT_CODE).apply()
     }
 }

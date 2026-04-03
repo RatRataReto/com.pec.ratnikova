@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -45,9 +43,6 @@ class MainActivity : ComponentActivity() {
 fun MainApp(sessionManager: SessionManager, viewModel: StudentViewModel) {
     val navController = rememberNavController()
     val uiState by viewModel.uiState.collectAsState()
-    var showSaveDialog by remember { mutableStateOf(false) }
-    var pendingCode by remember { mutableStateOf("") }
-
     val savedCode = remember { sessionManager.getStudentCode() }
 
     LaunchedEffect(savedCode) {
@@ -56,22 +51,30 @@ fun MainApp(sessionManager: SessionManager, viewModel: StudentViewModel) {
         }
     }
 
-    NavHost(navController = navController, startDestination = if (savedCode != null) "profile" else "login") {
+    NavHost(
+        navController = navController, 
+        startDestination = if (savedCode != null) "profile" else "login"
+    ) {
         composable("login") {
-            LoginScreen(onLoginSuccess = { code ->
-                pendingCode = code
+            LoginScreen(onLoginSuccess = { code, isRemembered ->
+                if (isRemembered) {
+                    sessionManager.saveStudentCode(code)
+                }
                 viewModel.login(code)
             })
         }
         composable("profile") {
-            when (uiState) {
+            when (val state = uiState) {
                 is UiState.Success -> {
-                    val student = (uiState as UiState.Success).student
+                    val student = state.student
                     ProfileScreen(
                         student = student,
                         onBack = {
+                            sessionManager.clearStudentCode() // <-- NEW: Explicitly logout
                             viewModel.reset()
-                            navController.navigate("login")
+                            navController.navigate("login") {
+                                popUpTo("profile") { inclusive = true }
+                            }
                         },
                         onAvatarUpdated = { avatarUrl ->
                             viewModel.updateAvatar(student.id, avatarUrl)
@@ -92,36 +95,7 @@ fun MainApp(sessionManager: SessionManager, viewModel: StudentViewModel) {
         if (uiState is UiState.Success) {
             if (navController.currentDestination?.route == "login") {
                 navController.navigate("profile")
-                if (sessionManager.getStudentCode() == null) {
-                    showSaveDialog = true
-                }
             }
         }
-    }
-
-    if (showSaveDialog) {
-        AlertDialog(
-            onDismissRequest = { showSaveDialog = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    sessionManager.saveStudentCode(pendingCode)
-                    showSaveDialog = false
-                }) {
-                    Text("Хорошо", color = Color.Black)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showSaveDialog = false }) {
-                    Text("Отмена", color = Color.Gray)
-                }
-            },
-            title = {
-                Text("Сохраните данные для быстрого входа", fontSize = 16.sp)
-            },
-            text = {
-                Text("Выйдите из аккаунта, если вошли в приложение не на своем устройстве", fontSize = 12.sp, color = Color.Gray)
-            },
-            containerColor = Color.White
-        )
     }
 }
