@@ -78,7 +78,7 @@ fun ProfileScreen(
                             ) {
                                 if (student.avatarBase64 != null) {
                                     AsyncImage(
-                                        model = student.avatarBase64,
+                                        model = student.getAvatarBytes(),
                                         contentDescription = "Avatar",
                                         modifier = Modifier.fillMaxSize(),
                                         contentScale = ContentScale.Crop
@@ -136,7 +136,7 @@ fun ProfileScreen(
                         .background(ProfileTopBg), // Matches top zone
                     contentAlignment = Alignment.Center
                 ) {
-                    Divider(
+                    HorizontalDivider(
                         color = Color.White,
                         modifier = Modifier.fillMaxWidth(0.8f),
                         thickness = 1.dp
@@ -183,7 +183,7 @@ fun ProfileScreen(
                             modifier = Modifier
                                 .size(200.dp)
                                 .background(Color.White, RoundedCornerShape(8.dp))
-                                .padding(8.dp),
+                                .padding(4.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
